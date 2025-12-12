@@ -1,372 +1,198 @@
-:root{
-  --bg:#0b0f17;
-  --card:#0f1624;
-  --card2:#101b2e;
-  --text:#e8eefc;
-  --muted:#a7b2cf;
-  --line:rgba(255,255,255,0.08);
-  --accent:#7c5cff;
-  --accent2:#22c55e;
-  --danger:#ef4444;
-  --shadow: 0 20px 60px rgba(0,0,0,0.35);
-  --radius: 18px;
-}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VibeUp | Join and Get Reminded</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">VU</div>
+        <div>
+          <div class="brand-name">VibeUp</div>
+          <div class="brand-sub">Find it. Join it. Show up.</div>
+        </div>
+      </div>
 
-*{ box-sizing:border-box; }
-body{
-  margin:0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-  background: radial-gradient(1200px 800px at 20% 10%, rgba(124,92,255,0.18), transparent 60%),
-              radial-gradient(1000px 700px at 80% 20%, rgba(34,197,94,0.12), transparent 55%),
-              var(--bg);
-  color:var(--text);
-}
+      <button id="alertsBtn" class="chip" aria-label="Open alerts">
+        Alerts <span id="alertsCount" class="badge">0</span>
+      </button>
+    </header>
 
-.app{
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 18px 18px 40px;
-}
+    <main>
+      <section class="hero card">
+        <h1>Pick one event. I’ll make sure you actually show up.</h1>
+        <p class="muted">
+          Built for busy urban humans. Low effort joining, smart reminders, and a little confidence boost if you’re going solo.
+        </p>
 
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding: 10px 4px 18px;
-}
+        <div class="row">
+          <button id="useLocationBtn" class="btn primary">Use my location</button>
+          <div class="or">or</div>
+          <div class="row grow">
+            <input id="zipInput" class="input" placeholder="ZIP or neighborhood, ex: 10001 or Williamsburg" />
+            <button id="searchBtn" class="btn">Search</button>
+          </div>
+        </div>
 
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
+        <div class="helper">
+          Sample city ready to go: <span class="pill">New York City</span>
+        </div>
+      </section>
 
-.logo{
-  width:44px;height:44px;
-  border-radius:14px;
-  display:grid;place-items:center;
-  background: linear-gradient(135deg, rgba(124,92,255,1), rgba(34,197,94,1));
-  color:#06101c;
-  font-weight:900;
-}
+      <section class="grid">
+        <div class="card">
+          <div class="section-title">Nearby events</div>
+          <div id="eventsList" class="list"></div>
+        </div>
 
-.brand-name{ font-weight:800; letter-spacing:0.3px; }
-.brand-sub{ font-size: 12px; color: var(--muted); margin-top:2px; }
+        <div class="card" id="eventDetailCard">
+          <div class="section-title">Event details</div>
+          <div id="eventDetail" class="empty">
+            Select an event to see details.
+          </div>
+        </div>
+      </section>
+    </main>
 
-.card{
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent 80%), var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
+    <div id="modalBackdrop" class="backdrop hidden"></div>
 
-.card-soft{
-  background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 70%), var(--card2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
+    <section id="alertsPanel" class="sheet hidden" aria-label="Alerts panel">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title">Alerts</div>
+          <div class="muted">In app reminders and check-ins live here.</div>
+        </div>
+        <button id="closeAlertsBtn" class="btn small">Close</button>
+      </div>
+      <div id="alertsList" class="alerts"></div>
+      <div class="sheet-footer">
+        <button id="clearAlertsBtn" class="btn danger small">Clear alerts</button>
+      </div>
+    </section>
 
-.hero{
-  padding: 20px;
-  margin-bottom: 16px;
-}
+    <section id="joinSheet" class="sheet hidden" aria-label="Join sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title">You’re joining</div>
+          <div id="joinEventTitle" class="muted"></div>
+        </div>
+        <button id="closeJoinBtn" class="btn small">Close</button>
+      </div>
 
-.hero h1{
-  margin:0 0 8px;
-  font-size: 30px;
-  line-height: 1.15;
-}
-.muted{ color: var(--muted); }
-.small{ font-size: 12px; }
+      <div class="sheet-body">
+        <div class="block">
+          <div class="block-title">Reminder plan</div>
+          <div class="muted">Events are 1 week out. I’ll remind you early so you can plan.</div>
 
-.row{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-  margin-top: 14px;
-}
+          <div class="options">
+            <label class="option">
+              <input type="radio" name="plan" value="standard" checked />
+              <div>
+                <div class="opt-title">Standard</div>
+                <div class="muted">3 days before, 1 day before, 3 hours before, 1 hour before</div>
+              </div>
+            </label>
 
-.grow{ flex:1; }
+            <label class="option">
+              <input type="radio" name="plan" value="gentle" />
+              <div>
+                <div class="opt-title">Gentle</div>
+                <div class="muted">3 days before, 1 day before</div>
+              </div>
+            </label>
 
-.or{
-  color: var(--muted);
-  font-size: 13px;
-  padding: 0 6px;
-}
+            <label class="option">
+              <input type="radio" name="plan" value="extra" />
+              <div>
+                <div class="opt-title">Extra support</div>
+                <div class="muted">Standard plus a confidence check-in 2 hours before</div>
+              </div>
+            </label>
+          </div>
+        </div>
 
-.input{
-  flex:1;
-  min-width: 240px;
-  padding: 12px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.03);
-  color: var(--text);
-  outline: none;
-}
+        <div class="block">
+          <div class="block-title">Push notifications</div>
+          <div class="row">
+            <button id="enablePushBtn" class="btn">Enable push</button>
+            <div id="pushStatus" class="muted">Not enabled yet</div>
+          </div>
+          <div class="muted small">
+            Note: for this MVP, push works best while the tab is open. Later we can add true background push.
+          </div>
+        </div>
 
-.btn{
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.05);
-  color: var(--text);
-  padding: 12px 14px;
-  border-radius: 14px;
-  cursor:pointer;
-  font-weight: 650;
-}
+        <div class="block">
+          <div class="block-title">Going solo?</div>
+          <div class="solo card-soft">
+            <div class="solo-left">
+              <div class="solo-title">You’re not awkward. Your brain is just protecting you.</div>
+              <div class="muted">
+                Pick one quick help so you walk in with a plan.
+              </div>
 
-.btn.small{
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-}
+              <div class="chips">
+                <button class="chip" data-solo="icebreakers">Icebreakers</button>
+                <button class="chip" data-solo="whatToExpect">What to expect</button>
+                <button class="chip" data-solo="buddyLink">Bring a buddy</button>
+              </div>
 
-.btn.primary{
-  background: linear-gradient(135deg, rgba(124,92,255,1), rgba(124,92,255,0.7));
-  border-color: rgba(124,92,255,0.6);
-}
+              <div id="soloContent" class="solo-content muted"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-.btn.danger{
-  background: rgba(239,68,68,0.18);
-  border-color: rgba(239,68,68,0.35);
-}
+      <div class="sheet-footer">
+        <button id="addToCalendarBtn" class="btn">Add to calendar</button>
+        <button id="confirmJoinBtn" class="btn primary">Join and get reminded</button>
+      </div>
+    </section>
 
-.chip{
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.05);
-  color: var(--text);
-  padding: 10px 12px;
-  border-radius: 999px;
-  cursor:pointer;
-  font-weight: 650;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-}
+    <section id="joinedSheet" class="sheet hidden" aria-label="Joined sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title">Locked in</div>
+          <div id="joinedSubtitle" class="muted"></div>
+        </div>
+        <button id="closeJoinedBtn" class="btn small">Close</button>
+      </div>
 
-.badge{
-  background: rgba(255,255,255,0.12);
-  border: 1px solid var(--line);
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  color: var(--text);
-}
+      <div class="sheet-body">
+        <div class="block">
+          <div class="block-title">Your reminder timeline</div>
+          <div id="timeline" class="timeline"></div>
+        </div>
 
-.helper{
-  margin-top: 12px;
-  color: var(--muted);
-  font-size: 13px;
-}
+        <div class="block">
+          <div class="block-title">Day-of check-in</div>
+          <div class="muted">When it’s time, I’ll ask one thing:</div>
+          <div class="checkin">
+            <button id="attendedBtn" class="btn primary">I went</button>
+            <button id="noshowBtn" class="btn danger">I missed it</button>
+          </div>
+          <div class="muted small">
+            This powers the North Star: reduce no show.
+          </div>
+        </div>
 
-.pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  background: rgba(124,92,255,0.15);
-  border: 1px solid rgba(124,92,255,0.28);
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: var(--text);
-}
+        <div class="block">
+          <div class="block-title">Next move</div>
+          <button id="nextEventBtn" class="btn">Find my next event</button>
+        </div>
+      </div>
+    </section>
 
-.grid{
-  display:grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: 14px;
-}
+    <footer class="footer">
+      <div class="muted small">MVP for vibe coding. No accounts. Data stored locally.</div>
+    </footer>
+  </div>
 
-@media (max-width: 900px){
-  .grid{ grid-template-columns: 1fr; }
-}
-
-.section-title{
-  padding: 16px 16px 8px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-}
-
-.list{
-  padding: 8px 10px 14px;
-}
-
-.item{
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.03);
-  margin: 10px 6px;
-  cursor:pointer;
-  transition: transform 120ms ease;
-}
-
-.item:hover{ transform: translateY(-2px); }
-
-.item-top{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-}
-
-.item-title{ font-weight: 850; }
-.item-meta{ color: var(--muted); font-size: 13px; margin-top: 6px; }
-.tag{
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.04);
-  font-size: 12px;
-  color: var(--text);
-  height: fit-content;
-}
-
-.empty{
-  padding: 16px;
-  color: var(--muted);
-}
-
-.detail{
-  padding: 12px 16px 16px;
-}
-
-.detail h2{
-  margin: 6px 0 6px;
-  font-size: 22px;
-}
-
-.kv{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-@media (max-width: 520px){
-  .kv{ grid-template-columns: 1fr; }
-}
-
-.kv .box{
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.03);
-  border-radius: 16px;
-  padding: 12px;
-}
-
-.box .label{ color: var(--muted); font-size: 12px; }
-.box .value{ margin-top: 6px; font-weight: 750; }
-
-.actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top: 14px;
-}
-
-.backdrop{
-  position:fixed; inset:0;
-  background: rgba(0,0,0,0.55);
-  z-index: 20;
-}
-
-.sheet{
-  position:fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 18px;
-  width: min(820px, calc(100% - 24px));
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent 85%), var(--card);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  box-shadow: var(--shadow);
-  z-index: 30;
-  overflow:hidden;
-}
-
-.sheet-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-  padding: 16px 16px 10px;
-}
-
-.sheet-title{ font-weight: 900; font-size: 18px; }
-.sheet-body{ padding: 6px 16px 12px; }
-.sheet-footer{
-  padding: 12px 16px 16px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-  border-top: 1px solid var(--line);
-  background: rgba(0,0,0,0.12);
-}
-
-.block{
-  margin: 12px 0;
-  padding: 14px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.03);
-}
-
-.block-title{ font-weight: 850; margin-bottom: 6px; }
-
-.options{ display:flex; flex-direction:column; gap:10px; margin-top: 10px; }
-.option{
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.02);
-  cursor:pointer;
-}
-
-.opt-title{ font-weight: 850; }
-
-.solo{
-  padding: 14px;
-}
-
-.solo-title{ font-weight: 900; margin-bottom: 4px; }
-.chips{ display:flex; gap:8px; flex-wrap:wrap; margin-top: 10px; }
-.solo-content{ margin-top: 10px; }
-
-.timeline{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.tl-item{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.02);
-  padding: 12px;
-  border-radius: 16px;
-}
-
-.checkin{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; }
-
-.alerts{ padding: 10px 16px 14px; max-height: 52vh; overflow:auto; }
-.alert{
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.02);
-  padding: 12px;
-  border-radius: 16px;
-  margin: 10px 0;
-}
-.alert .t{ font-weight: 850; }
-.alert .d{ color: var(--muted); font-size: 13px; margin-top: 4px; }
-
-.footer{
-  padding: 18px 6px 0;
-}
-
-.hidden{ display:none; }
+  <script src="app.js"></script>
+</body>
+</html>
